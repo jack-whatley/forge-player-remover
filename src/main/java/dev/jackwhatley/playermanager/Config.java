@@ -1,63 +1,60 @@
 package dev.jackwhatley.playermanager;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import org.checkerframework.framework.qual.Unused;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Vector;
 
-// An example config class. This is not required, but it's a good idea to have one to keep your config organized.
-// Demonstrates how to use Forge's config APIs
 @Mod.EventBusSubscriber(modid = PlayerManagerMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Config
 {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-
-    private static final ForgeConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
-            .comment("Whether to log the dirt block on common setup")
-            .define("logDirtBlock", true);
-
-    private static final ForgeConfigSpec.IntValue MAGIC_NUMBER = BUILDER
-            .comment("A magic number")
-            .defineInRange("magicNumber", 42, 0, Integer.MAX_VALUE);
-
-    public static final ForgeConfigSpec.ConfigValue<String> MAGIC_NUMBER_INTRODUCTION = BUILDER
-            .comment("What you want the introduction message to be for the magic number")
-            .define("magicNumberIntroduction", "The magic number is... ");
-
-    // a list of strings that are treated as resource locations for items
-    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> ITEM_STRINGS = BUILDER
-            .comment("A list of items to log on common setup.")
-            .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), Config::validateItemName);
+    
+    private static final ForgeConfigSpec.BooleanValue IS_MOD_ENABLED = BUILDER
+            .comment(" Enable or disable the mods functionality")
+            .define("isEnabled", true);
+    
+    private static final ForgeConfigSpec.IntValue KICK_CHANCE = BUILDER
+            .comment(" The percentage chance of the mod kicking a chosen user (0 - 100)%")
+            .defineInRange("kickChance", 10, 0, 100);
+    
+    private static final ForgeConfigSpec.ConfigValue<String> KICK_MSG = BUILDER
+            .comment(" The message to be displayed when disconnecting players, can be left blank")
+            .define("kickMsg", "");
+    
+    private static final ForgeConfigSpec.ConfigValue<List<? extends String>> TARGET_NAMES = BUILDER
+            .comment(" The usernames of the players to be kicked by this mod")
+            .defineListAllowEmpty("playerNames", List.of(), Config::validatePlayerNames);
+    
+    private static final ForgeConfigSpec.BooleanValue LOG_ON_KICK = BUILDER
+            .comment(" Enable or disable the mod logging if a player is kicked")
+            .define("logOnKick", true);
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
-    public static boolean logDirtBlock;
-    public static int magicNumber;
-    public static String magicNumberIntroduction;
-    public static Set<Item> items;
+    public static boolean isModEnabled;
+    public static boolean isLogEnabled;
+    
+    public static int kickChance;
+    public static String kickMsg;
+    public static List<String> targetNames;
 
-    private static boolean validateItemName(final Object obj)
-    {
-        return obj instanceof final String itemName && ForgeRegistries.ITEMS.containsKey(new ResourceLocation(itemName));
-    }
+    // may need future validation here, or the ability to put in player uuids
+    private static boolean validatePlayerNames(final Object obj) { return true; }
 
     @SubscribeEvent
-    static void onLoad(final ModConfigEvent event)
+    @SuppressWarnings("unused")
+    static void onConfigLoad(final ModConfigEvent event)
     {
-        logDirtBlock = LOG_DIRT_BLOCK.get();
-        magicNumber = MAGIC_NUMBER.get();
-        magicNumberIntroduction = MAGIC_NUMBER_INTRODUCTION.get();
-
-        // convert the list of strings into a set of items
-        items = ITEM_STRINGS.get().stream()
-                .map(itemName -> ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemName)))
-                .collect(Collectors.toSet());
+        isModEnabled = IS_MOD_ENABLED.get();
+        isLogEnabled = LOG_ON_KICK.get();
+        
+        kickChance = KICK_CHANCE.get();
+        kickMsg = KICK_MSG.get();
+        targetNames = new Vector<>(TARGET_NAMES.get());
     }
 }
