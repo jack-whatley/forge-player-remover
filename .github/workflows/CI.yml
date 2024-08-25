@@ -27,9 +27,6 @@ jobs:
     - name: Build Mod
       run: ./gradlew build
 
-    - name: Create JAR File
-      run: ./gradlew jar
-
     - name: Upload mod jar
       uses: actions/upload-artifact@v4.3.6
       with:
